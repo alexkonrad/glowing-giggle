@@ -1,2 +1,5 @@
 images/
 .ipynb_checkpoints
+*.aux
+*.log
+*.synctex.gz

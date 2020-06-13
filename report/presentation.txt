@@ -1,0 +1,84 @@
+Hi, I’m Alex Konrad and I chose to work on scene segmentation using
+Conditional Random Fields, recreating a paper in Python code. I'll give
+an overview of the paper and talk about my experience in implementation.
+
+[Next Slide]
+
+Scene Segmentation is the task of partitioning an image into regions
+corresponding to the objects in them and assigning the correct class
+labels to a given region.
+
+A conditional random field is a structured prediction classifier that
+can take context into account when making predictions by using a
+graphical model to add dependencies between regions.
+
+As you remember from class, conditional random fields are a distinct
+type of Markov random field because they directly model the conditional
+distribution, P(Y|X), rather than the joint distribution P(X,Y). 
+
+For this project I mostly aimed to reproduce a paper by Verbeek and
+Triggs from 2007 that applied Conditional Random Fields to the
+scene segmentation problem. Following them I applied the classifier
+to the MSRC 9-class label object recognition dataset.
+
+[Next Slide]
+
+To build features, I decomposed the image into 16x16 patches to build
+a feature vector. For each patch, I compute the 128-dimensional
+SIFT descriptor vector (using OpenCV), a 36-dimensional color hue descriptor
+vector, and a position vector indicating which patch it belongs in.
+
+But the CRF classifier doesn't work directly with the image feature data.
+For each of these features, I cluster the feature response from
+every patch in the entire training set together, and the actual features
+are indicator vectors which designate the centroid assignment for that patch.
+This allows us to classify a patch based on other most similar patches.
+
+[Next Slide]
+
+Only taking local context into account, we could build a Naive Bayes
+classifier and that predicts the most likely class label
+for each patch given a feature assignment and stop here. Verbeek and Triggs
+were able to achieve a 68% accuracy on this dataset with Naive Bayes.
+
+Instead I build a CRF model to make our prediction at a given patch
+dependent on the predictions for neighboring patches. The equation below
+shows the patch prediction task for a patch label X out of C classes
+given a patch feature vector Y, which is a W-dimensional vector just
+indiciating the concatenation of our three vectors from the previous slide.
+
+The matrices alpha and beta are the parameters for our model, and h is
+a global histogram of assignments of class labels. phi models couplings
+between neighboring labels, and is modeled by an indicator function and
+a parameter.
+
+[Next slide]
+
+I haven't completed my experiments yet, which is to compare
+the accuracy of the CRF versus the Naive Bayes classifier, so I include
+some of the resulting images of the authors of the paper. The top photo
+is the input, the middle is the prediction with labels, and the bottom is
+ground truth. The paper also uses Loopy Belief Propagation and Bethe
+Approximation to learn from partially labeled data, which is common to these
+scene segmentation datasets, which is slightly more advanced.
+
+What did I learn?
+
+I thought it was impressive how the authors combine simple building
+blocks like the three kinds of feature detectors, k-means clustering and
+nearest neighbor-assigment to a closest centroid, resulting in a set of
+indicator vectors, to build descriptive feature representations that fit
+right into a CRF model.
+
+You learn a lot more from trying to reconstruct a paper rather than just skimming it.
+
+In this project I probably learned the most from constructing the feature
+vectors and learning a little more about things like SIFT descriptors and
+hue descriptors. I had some difficulty setting up and training the conditional
+random fields. I was hoping to find a Python library for CRFs to use
+but in the end I decided to code it up on my own, and use OpenCV for some help
+with the descriptors. Thanks you!
+
+
+
+

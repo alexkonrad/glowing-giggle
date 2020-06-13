@@ -28,14 +28,33 @@ class SceneClassifier():
     self.X_train_sift = np.zeros((N, self.num_patches))
     M = self.X_test.shape[0]
     self.X_test_features = np.zeros((M, self.num_patches))
-    self.X_test_sift = np.zeros((M, self.num_patches, 128))
-    self.X_test_hue = np.zeros((M, self.num_patches, 36))
-    self.X_test_pos = np.zeros((M, self.num_patches, 1))
+    self.X_test_sift = np.zeros((M, self.num_patches))
+    self.X_test_hue = np.zeros((M, self.num_patches))
+    self.X_test_pos = np.zeros((M, self.num_patches))
 
   def fit(self):
     """ Fit Naive Bayes Classifier. """
     self.clf = CategoricalNB()
     self.clf.fit(self.X_train_feat, self.y_train_labels.reshape(-1))
+
+  def predict(self, i):
+    """ Predict range from test set """
+    feat = self.X_test_feat.reshape((self.X_test_patches.shape[0], self.num_patches, 1260))
+    pred = self.clf.predict(feat[i,:,:])
+    return pred
+
+
+  def error(self):
+    """ Measure error on test set. """
+    accs = []
+    for i in range(self.X_test.shape[0]):
+      pred = self.predict(i)
+      acc = np.count_nonzero(pred == self.y_test_labels[i]) / self.num_patches
+      accs.append(acc)
+    return np.mean(acc)
+
+
+
 
   def compute_features(self, test=False, save=True):
     """ Compute features. Flag to include test features too, and save to file. """
@@ -70,7 +89,7 @@ class SceneClassifier():
       self.hue_descriptors(test=True)
       self.position_descriptors(test=True)
       self.bitwise_features(test=True)
-      self.encode_y(test=True)
+      # self.encode_y(test=True)
 
   def load(self):
     """ Load classifier data and features from files. """
@@ -85,6 +104,9 @@ class SceneClassifier():
 
     with open('clf.pickle', 'rb') as f:
       self.clf = pickle.load(f)
+
+    with open('features-test.pickle', 'rb') as f:
+      self.X_test_feat = pickle.load(f)
 
     self.encode_y()
 
@@ -190,6 +212,26 @@ class SceneClassifier():
         patch = self.y_test_patches[i,j,:,:]
         vals, counts = np.unique(patch, axis=0, return_counts=True)
         self.y_test_labels[i,j] = labels[tuple(reversed(vals[-1]))]
+
+  def decode_y(self, pred):
+    """ Turn class labels into pixel space. """
+    labels = np.array([
+      (0, 0, 0),
+      (128, 0, 0),
+      (0, 128, 0),
+      (128, 128, 0),
+      (0, 0, 128),
+      (128, 0, 128),
+      (0, 128, 128),
+      (128, 128, 128),
+      (64, 0, 0),
+      (192, 0, 0),
+      (64, 128, 0),
+      (192, 128, 0),
+      (64, 0, 128),
+      (192, 0, 128),
+    ])
+    return labels[pred.astype('uint8')]
 
   def get_x(self, i):
     """ Get training X image by index. """
@@ -316,8 +358,8 @@ class SceneClassifier():
     if test:
       self.X_test_feat = np.full((N * self.num_patches, M), 0, dtype=bool)
       for i in range(self.X_test_feat.shape[0]):
-        sift = self.X_test_sift[i]
-        hue = self.X_test_hue[i]
+        sift = int(self.X_test_sift.reshape(-1)[i])
+        hue = int(self.X_test_hue.reshape(-1)[i])
         pos = self.X_test_pos[i]
         self.X_test_feat[i,sift] = True
         self.X_test_feat[i,1000+hue] = True

@@ -30,8 +30,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="260">
-              <caret line="85" selection-start-line="85" selection-end-line="87" selection-end-column="24" />
+            <state relative-caret-position="360">
+              <caret line="24" lean-forward="true" selection-start-line="24" selection-end-line="24" />
             </state>
           </provider>
         </entry>
@@ -39,8 +39,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/scene/classifier.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1405">
-              <caret line="324" column="22" lean-forward="true" selection-start-line="324" selection-start-column="22" selection-end-line="324" selection-end-column="22" />
+            <state relative-caret-position="275">
+              <caret line="233" column="36" selection-start-line="233" selection-start-column="36" selection-end-line="233" selection-end-column="36" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -60,6 +60,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>idx</find>
+      <find>predict</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -190,12 +191,12 @@
       <workItem from="1591975725626" duration="1658000" />
       <workItem from="1591978425719" duration="634000" />
       <workItem from="1591979306002" duration="8021000" />
-      <workItem from="1591996720647" duration="23853000" />
+      <workItem from="1591996720647" duration="25937000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="38200000" />
+    <option name="totallyTimeSpent" value="40284000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -216,21 +217,21 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49928468" weight="0.3299363" />
       <window_info anchor="bottom" id="Run" order="2" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.48458782" weight="0.4" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.48315412" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32948717" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" sideWeight="0.49928468" weight="0.3299363" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
-      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.23010753" side_tool="true" visible="true" weight="0.4356688" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.23082437" side_tool="true" visible="true" weight="0.30063695" />
       <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.4985694" weight="0.32866243" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="12" sideWeight="0.76989245" visible="true" weight="0.4356688" />
+      <window_info active="true" anchor="bottom" id="Python Console" order="12" sideWeight="0.76917565" visible="true" weight="0.30063695" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" sideWeight="0.9413093" visible="true" weight="0.17992832" />
-      <window_info anchor="right" x="0" y="0" width="310" height="677" id="Documentation" order="4" sideWeight="0.058690745" side_tool="true" visible="true" weight="0.17992832" />
+      <window_info anchor="right" id="SciView" order="3" sideWeight="0.8306011" visible="true" weight="0.17992832" />
+      <window_info anchor="right" x="0" y="0" width="310" height="677" id="Documentation" order="4" sideWeight="0.1693989" side_tool="true" visible="true" weight="0.17992832" />
       <window_info anchor="right" id="Database" order="5" sideWeight="0.49727768" weight="0.3297568" />
     </layout>
   </component>
@@ -256,6 +257,11 @@
       </expression>
     </expressions>
     <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>self.sift_dictionary.predict(desc.reshape(1,-1)).shape</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
       <expression>
         <expression-string>self.sift_dictionary.predict(desc.reshape(1, -1))</expression-string>
         <language-id>Python</language-id>
@@ -296,11 +302,6 @@
         <language-id>Python</language-id>
         <evaluation-mode>EXPRESSION</evaluation-mode>
       </expression>
-      <expression>
-        <expression-string>weights.shape[0]</expression-string>
-        <language-id>Python</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
     </expressions>
   </component>
   <component name="editorHistoryManager">
@@ -335,15 +336,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="260">
-          <caret line="85" selection-start-line="85" selection-end-line="87" selection-end-column="24" />
+        <state relative-caret-position="360">
+          <caret line="24" lean-forward="true" selection-start-line="24" selection-end-line="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/scene/classifier.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1405">
-          <caret line="324" column="22" lean-forward="true" selection-start-line="324" selection-start-column="22" selection-end-line="324" selection-end-column="22" />
+        <state relative-caret-position="275">
+          <caret line="233" column="36" selection-start-line="233" selection-start-column="36" selection-end-line="233" selection-end-column="36" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>

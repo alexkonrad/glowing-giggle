@@ -20,8 +20,14 @@ sc.compute_features(test=True)
 
 #%% Make predictions
 
+pred = sc.predict(6)
+img = sc.decode_y(pred).reshape(16, 10, 3)
 
-pred = sc.clf.predict(sc.X_test_features[0].reshape(-1))
+plt.figure;
+plt.imshow(img)
+plt.show();
+
+# pred = sc.clf.predict(sc.X_test_features[0].reshape(-1))
 
 #%% Display X and Y training exampless
 sc.display(0)

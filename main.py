@@ -5,26 +5,23 @@
 # TODO: visualize result
 # TODO: measure error
 # TODO: write report
+import pickle
 
 
 #%% Setup scene classifier object
 from scene.classifier import *
-sc = SceneClassifier(limit=12)
+sc = SceneClassifier()
 
-#%% Compute SIFT descriptors
-sc.sift_descriptors()
-sc.learn_sift_dictionary()
-# TODO: plot sc.X_train_sift
+#%% Load classifier data from file
+sc.load()
 
-#%% Compute hue descriptors
-sc.hue_descriptors()
-sc.learn_hue_dictionary()
-# TODO: plot sc.X_train_hue
+#%% Compute test features
+sc.compute_features(test=True)
 
-#%% Compute position descriptors
-sc.position_descriptors()
-sc.learn_position_dictionary()
+#%% Make predictions
 
+
+pred = sc.clf.predict(sc.X_test_features[0].reshape(-1))
 
 #%% Display X and Y training exampless
 sc.display(0)
@@ -50,3 +47,42 @@ plt.show()
 #%% OK
 
 print("HEL")
+
+#%% Compute SIFT descriptors
+sc.sift_descriptors()
+sc.learn_sift_dictionary()
+sift_dict = sc.sift_dictionary
+with open('sift.pickle', 'wb') as f:
+    pickle.dump(sift_dict, f)
+# clf2 = pickle.loads(s)
+# TODO: plot sc.X_train_sift
+
+#%% Compute hue descriptors
+sc.hue_descriptors()
+sc.learn_hue_dictionary()
+hue_dict = sc.hue_dictionary
+with open('hue.pickle', 'wb') as f:
+  pickle.dump(hue_dict, f)
+# TODO: plot sc.X_train_hue
+
+#%% Compute position descriptors
+sc.position_descriptors()
+
+#%% Compute bitwise feature vectors
+sc.bitwise_features()
+
+with open('features.pickle', 'wb') as f:
+  pickle.dump(sc.X_train_feat, f)
+
+#%% Setup Y vectors
+
+sc.encode_y()
+
+#%% Fit classifier
+
+sc.fit()
+
+#%% Save classifier
+
+with open('clf.pickle', 'wb') as f:
+  pickle.dump(sc.clf, f)

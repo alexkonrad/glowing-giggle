@@ -1,9 +1,10 @@
+import cv2
+import pickle
+
 from scene.data import *
 from scene.sift import SIFTDescriptor
 from sklearn.cluster import KMeans
-from sklearn.neighbors import NearestNeighbors
-
-import cv2
+from sklearn.naive_bayes import CategoricalNB
 
 class SceneClassifier():
   def __init__(self, verbose=True, limit=np.inf, patch_dim=20, height=200, width=320):
@@ -27,8 +28,84 @@ class SceneClassifier():
     self.X_train_sift = np.zeros((N, self.num_patches))
     M = self.X_test.shape[0]
     self.X_test_features = np.zeros((M, self.num_patches))
-    self.X_test_sift = np.zeros((M, self.num_patches))
-    self.X_test_hue = np.zeros((M, self.num_patches))
+    self.X_test_sift = np.zeros((M, self.num_patches, 128))
+    self.X_test_hue = np.zeros((M, self.num_patches, 36))
+    self.X_test_pos = np.zeros((M, self.num_patches, 1))
+
+  def fit(self):
+    """ Fit Naive Bayes Classifier. """
+    self.clf = CategoricalNB()
+    self.clf.fit(self.X_train_feat, self.y_train_labels.reshape(-1))
+
+  def compute_features(self, test=False, save=True):
+    """ Compute features. Flag to include test features too, and save to file. """
+    if not test:
+      self.verbose and print("Computing training features.")
+      self.sift_descriptors()
+      self.learn_sift_dictionary()
+
+      if save:
+        with open('sift.pickle', 'wb') as f:
+          pickle.dump(self.sift_dictionary, f)
+
+      self.hue_descriptors()
+      self.learn_hue_dictionary()
+      if save:
+        with open('hue.pickle', 'wb') as f:
+          pickle.dump(self.hue_dictionary, f)
+
+      self.position_descriptors()
+
+      self.bitwise_features()
+
+      if save:
+        with open('features.pickle', 'wb') as f:
+          pickle.dump(self.X_train_feat, f)
+
+      self.encode_y()
+      print("Finished computing training features.")
+    if test:
+      print("Computing test features.")
+      self.sift_descriptors(test=True)
+      self.hue_descriptors(test=True)
+      self.position_descriptors(test=True)
+      self.bitwise_features(test=True)
+      self.encode_y(test=True)
+
+  def load(self):
+    """ Load classifier data and features from files. """
+    with open('sift.pickle', 'rb') as f:
+      self.sift_dictionary = pickle.load(f)
+
+    with open('hue.pickle', 'rb') as f:
+      self.hue_dictionary = pickle.load(f)
+
+    with open('features.pickle', 'rb') as f:
+      self.X_train_feat = pickle.load(f)
+
+    with open('clf.pickle', 'rb') as f:
+      self.clf = pickle.load(f)
+
+    self.encode_y()
+
+  def save(self, test=False):
+    """ Save computed model parameters to disk. """
+    if not test:
+      with open('sift.pickle', 'wb') as f:
+        pickle.dump(self.sift_dictionary, f)
+
+      with open('hue.pickle', 'wb') as f:
+        pickle.dump(self.hue_dictionary, f)
+
+      with open('features.pickle', 'wb') as f:
+        pickle.dump(self.X_train_feat, f)
+
+      with open('clf.pickle', 'wb') as f:
+        pickle.dump(self.clf, f)
+
+    if test:
+      with open('features-test.pickle', 'wb') as f:
+        pickle.dump(self.X_test_feat, f)
 
   def crop(self):
     """ Crop images from bottom and right to a convenient size for building patches. """
@@ -63,6 +140,57 @@ class SceneClassifier():
     image = cv2.normalize(image.astype('float'), None, 0.0, 1.0, cv2.NORM_MINMAX)
     return image
 
+  def encode_y(self):
+    """ Turn y labels from 3-D RGB values to ordinals. """
+    n, n_patches, patch_size, d = self.y_train_patches.shape
+    m = self.y_test_patches.shape[0]
+    labels = {
+      (0, 0, 0): 'void',
+      (128, 0, 0): 'building',
+      (0, 128, 0): 'grass',
+      (128, 128, 0): 'tree',
+      (0, 0, 128): 'cow',
+      (128, 0, 128): 'horse',
+      (0, 128, 128): 'sheep',
+      (128, 128, 128): 'sky',
+      (64, 0, 0): 'mountain',
+      (192, 0, 0): 'aeroplane',
+      (64, 128, 0): 'water',
+      (192, 128, 0): 'face',
+      (64, 0, 128): 'car',
+      (192, 0, 128): 'bicycle'
+    }
+
+    labels = {
+      (0, 0, 0): 0,
+      (128, 0, 0): 1,
+      (0, 128, 0): 2,
+      (128, 128, 0): 3,
+      (0, 0, 128): 4,
+      (128, 0, 128): 5,
+      (0, 128, 128): 6,
+      (128, 128, 128): 7,
+      (64, 0, 0): 8,
+      (192, 0, 0): 9,
+      (64, 128, 0): 10,
+      (192, 128, 0): 11,
+      (64, 0, 128): 12,
+      (192, 0, 128): 13
+    }
+
+    self.y_train_labels = np.zeros((n, n_patches))
+    self.y_test_labels = np.zeros((m, n_patches))
+    for i in range(n):
+      for j in range(n_patches):
+        patch = self.y_train_patches[i,j,:,:]
+        vals, counts = np.unique(patch, axis=0, return_counts=True)
+        self.y_train_labels[i,j] = labels[tuple(reversed(vals[-1]))]
+    for i in range(m):
+      for j in range(n_patches):
+        patch = self.y_test_patches[i,j,:,:]
+        vals, counts = np.unique(patch, axis=0, return_counts=True)
+        self.y_test_labels[i,j] = labels[tuple(reversed(vals[-1]))]
+
   def get_x(self, i):
     """ Get training X image by index. """
     return self.process(
@@ -83,9 +211,6 @@ class SceneClassifier():
     y.axis('off')
     plt.show()
 
-  def compute_features(self):
-    pass
-
   def sift_descriptors(self, test=False):
     sift = cv2.xfeatures2d.SIFT_create(nfeatures=1, contrastThreshold=1e-12, edgeThreshold=1e6)
     X = self.X_test_patches if test else self.X_train_patches
@@ -99,8 +224,7 @@ class SceneClassifier():
         gray_patch = cv2.cvtColor(patch, cv2.COLOR_BGR2GRAY)
         desc = sd.describe(gray_patch)
         if test:
-          # self.X_test_sift[n,p] = self.sift_dictionary.predict(desc)
-          pass
+          self.X_test_sift[n,p] = self.sift_dictionary.predict(desc.reshape(1,-1))
         else:
           feat_bank_row = p * n + p;
           self.X_train_sift[n,p] = feat_bank_row
@@ -134,8 +258,7 @@ class SceneClassifier():
         patch = X[n, p, :, :].reshape((self.patch_dim, self.patch_dim, 3))
         desc = self.hue_descriptor(patch)
         if test:
-          # self.X_test_hue[n,p] = self.hue_dictionary.predict(desc)
-          pass
+          self.X_test_hue[n,p] = self.hue_dictionary.predict(desc.reshape(1,-1))
         else:
           feat_bank_row = p * n + p;
           self.X_hue_bank[feat_bank_row,:] = desc
@@ -176,14 +299,62 @@ class SceneClassifier():
 
     return np.sum(out, axis=1)
 
-  def position_feature(self, X, n_patches=266, n_cells=8):
-    """ Assign every patch to a cell in a grid of the image. """
-    h, w, d = X.shape
-    quo, rem = divmod(n_patches, n_cells)
-    cell_labels = np.repeat(np.arange(1, n_cells+1), quo)
-    extra_cell_labels = np.repeat(1, rem)
-    cell_labels = np.sort(np.concatenate((cell_labels, extra_cell_labels)))
-    return cell_labels
+  def position_descriptors(self, test=False):
+    """ Assign every patch a row and column position in an 8x8 grid. """
+    if test:
+      self.X_test_pos = np.repeat(np.arange(160), self.X_test.shape[0])
+    else:
+      self.X_train_pos = np.repeat(np.arange(160), self.X_train.shape[0])
+
+    self.verbose and print("Computed position descriptors.")
+
+
+  def bitwise_features(self, test=False):
+    """ Generate bitwise features for SIFT, hue and position. """
+    N = self.X_test.shape[0] if test else self.X_train.shape[0]
+    M = 1000 + 100 + 160
+    if test:
+      self.X_test_feat = np.full((N * self.num_patches, M), 0, dtype=bool)
+      for i in range(self.X_test_feat.shape[0]):
+        sift = self.X_test_sift[i]
+        hue = self.X_test_hue[i]
+        pos = self.X_test_pos[i]
+        self.X_test_feat[i,sift] = True
+        self.X_test_feat[i,1000+hue] = True
+        self.X_test_feat[i,1100+pos] = True
+      self.X_test_feat.reshape((N, self.num_patches, M))
+    else:
+      self.X_train_feat = np.full((N * self.num_patches, M), 0, dtype=bool)
+      for i in range(self.X_train_feat.shape[0]):
+        sift = self.X_train_sift[i]
+        hue = self.X_train_hue[i]
+        pos = self.X_train_pos[i]
+
+        self.X_train_feat[i,sift] = True
+        self.X_train_feat[i,1000+hue] = True
+        self.X_train_feat[i,1100+pos] = True
+      self.X_train_feat.reshape((N, self.num_patches, M))
+
+
+  # row_indices = [i for i in range(8) for _ in range(2)]
+  # col_indices = [i for i in range(5) for _ in range(2)]
+  # coords = np.meshgrid(row_indices, col_indices)
+  #
+  # if test:
+  #   self.X_test_row = np.repeat(coords[0].reshape(-1), N)
+  #   self.X_test_col = np.repeat(coords[1].reshape(-1), N)
+  # else:
+  #   self.X_train_row = np.repeat(coords[0].reshape(-1), N)
+  #   self.X_train_col = np.repeat(coords[1].reshape(-1), N)
+
+  # def position_feature(self, X, n_patches=266, n_cells=8):
+  #   """ Assign every patch to a cell in a grid of the image. """
+  #   h, w, d = X.shape
+  #   quo, rem = divmod(n_patches, n_cells)
+  #   cell_labels = np.repeat(np.arange(1, n_cells+1), quo)
+  #   extra_cell_labels = np.repeat(1, rem)
+  #   cell_labels = np.sort(np.concatenate((cell_labels, extra_cell_labels)))
+  #   return cell_labels
 
 
   # def keypoints(self, i):

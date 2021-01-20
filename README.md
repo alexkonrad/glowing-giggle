@@ -1,6 +1,6 @@
-# SceneCRF
+# SceneNB
 
-_Scene Segmentation with Conditional Random Fields_
+_Scene Segmentation with Naive Bayes_
 
 ## Intro
 

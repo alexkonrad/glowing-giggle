@@ -53,9 +53,6 @@ class SceneClassifier():
       accs.append(acc)
     return np.mean(acc)
 
-
-
-
   def compute_features(self, test=False, save=True):
     """ Compute features. Flag to include test features too, and save to file. """
     if not test:
@@ -155,6 +152,18 @@ class SceneClassifier():
         np.zeros((n, remaining_rows, patch_size, d))
       ))
     return patches
+
+  def predict_and_display(self, idx):
+    fig, ax = plt.subplots(3, 3)
+    for i in range(3):
+      pred = self.predict(idx+i)
+      img = self.decode_y(pred).reshape(10, 16, 3)
+      ax[0,i].imshow(self.process(self.X_test[idx+i]))
+      ax[1,i].imshow(self.process(self.y_test[idx+i]))
+      ax[2,i].imshow(self.process(img))
+    [a.axis('off') for a in np.ravel(ax)]
+    # plt.show()
+    plt.savefig(f'report/images/result{idx}.png')
 
   def process(self, image):
     """ Convert image to format for display. """
@@ -376,38 +385,5 @@ class SceneClassifier():
         self.X_train_feat[i,1000+hue] = True
         self.X_train_feat[i,1100+pos] = True
       self.X_train_feat.reshape((N, self.num_patches, M))
-
-
-  # row_indices = [i for i in range(8) for _ in range(2)]
-  # col_indices = [i for i in range(5) for _ in range(2)]
-  # coords = np.meshgrid(row_indices, col_indices)
-  #
-  # if test:
-  #   self.X_test_row = np.repeat(coords[0].reshape(-1), N)
-  #   self.X_test_col = np.repeat(coords[1].reshape(-1), N)
-  # else:
-  #   self.X_train_row = np.repeat(coords[0].reshape(-1), N)
-  #   self.X_train_col = np.repeat(coords[1].reshape(-1), N)
-
-  # def position_feature(self, X, n_patches=266, n_cells=8):
-  #   """ Assign every patch to a cell in a grid of the image. """
-  #   h, w, d = X.shape
-  #   quo, rem = divmod(n_patches, n_cells)
-  #   cell_labels = np.repeat(np.arange(1, n_cells+1), quo)
-  #   extra_cell_labels = np.repeat(1, rem)
-  #   cell_labels = np.sort(np.concatenate((cell_labels, extra_cell_labels)))
-  #   return cell_labels
-
-
-  # def keypoints(self, i):
-  #   """ Generate SIFT descriptors. """
-  #   sift = cv2.xfeatures2d.SIFT_create(contrastThreshold=.01, edgeThreshold=20)
-  #   img = self.X_train[i,:,:,:].astype('uint8')
-  #   gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-  #   # kp = sift.detect(gray, None)
-  #   kp, des = sift.detectAndCompute(gray,None)
-  #   img = cv2.drawKeypoints(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), kp, img)
-  #   return kp, des, img
-
 
 

@@ -1,11 +1,4 @@
-# TODO: encode position vector
-# TODO: encode three binary feature vectors
-# TODO: train on all training data and save dictionaries to disk
-# TODO: create naive bayes predictor
-# TODO: visualize result
-# TODO: measure error
-# TODO: write report
-import pickle
+
 
 
 #%% Setup scene classifier object
@@ -20,14 +13,10 @@ sc.compute_features(test=True)
 
 #%% Make predictions
 
-pred = sc.predict(6)
-img = sc.decode_y(pred).reshape(16, 10, 3)
+sc.predict_and_display(4)
+# sc.predict_and_display(2)
+# sc.predict_and_display(3)
 
-plt.figure;
-plt.imshow(img)
-plt.show();
-
-# pred = sc.clf.predict(sc.X_test_features[0].reshape(-1))
 
 #%% Display X and Y training exampless
 sc.display(0)
